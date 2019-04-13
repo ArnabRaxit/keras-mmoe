@@ -28,11 +28,23 @@ def main(_):
         cluster=cluster)):
 
       # Build model...
-      loss = ...
+      # Model parameters
+      W = tf.Variable([1], dtype=tf.float32)
+      b = tf.Variable([80], dtype=tf.float32)
+      # Model input and output
+      x = tf.placeholder(tf.float32)
+      linear_model = W*x+b
+      y = tf.placeholder(tf.float32)
+      # loss
+      loss = tf.reduce_sum(tf.square(linear_model - y))
       global_step = tf.contrib.framework.get_or_create_global_step()
 
       train_op = tf.train.AdagradOptimizer(0.01).minimize(
           loss, global_step=global_step)
+
+      # training data
+      x_train = [0,1,2,3,4,5,6,7,8,9,10]  # Internet hours
+      y_train = [85,80,84,80,82,70,44,30,22,10,15]   # Marks scored
 
     # The StopAtStepHook handles stopping after running given steps.
     hooks=[tf.train.StopAtStepHook(last_step=1000000)]
@@ -49,7 +61,7 @@ def main(_):
         # See `tf.train.SyncReplicasOptimizer` for additional details on how to
         # perform *synchronous* training.
         # mon_sess.run handles AbortedError in case of preempted PS.
-        mon_sess.run(train_op)
+        mon_sess.run(train_op,{x: x_train, y: y_train})
 
 
 if __name__ == "__main__":
