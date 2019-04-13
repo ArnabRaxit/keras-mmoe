@@ -47,7 +47,7 @@ def main(_):
       y_train = [85,80,84,80,82,70,44,30,22,10,15]   # Marks scored
 
     # The StopAtStepHook handles stopping after running given steps.
-    hooks=[tf.train.StopAtStepHook(last_step=1000000)]
+    hooks=[tf.train.StopAtStepHook(last_step=1000)]
 
     # The MonitoredTrainingSession takes care of session initialization,
     # restoring from a checkpoint, saving to a checkpoint, and closing when done
