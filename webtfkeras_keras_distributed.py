@@ -47,11 +47,12 @@ training_iterations = 100
 num_classes = 10
 log_frequency = 10
 
-# Load mnist data
+# Load apachelogs data
 def load_data():
-    global mnist
-    from tensorflow.examples.tutorials.mnist import input_data
-    mnist = input_data.read_data_sets('MNIST_data', one_hot=True)
+    global apachelogs
+    from apachelogs import read_data_sets
+    #apachelogs = input_data.read_data_sets('MNIST_data', one_hot=True)
+    apachelogs = read_data_sets()
     print("Data loaded")
 
 # Create Keras model
@@ -126,7 +127,7 @@ def create_optimizer(model, targets):
 def train(train_op, total_loss, global_step, step):
         import time
         start_time = time.time()
-        batch_x, batch_y = mnist.train.next_batch(batch_size)
+        batch_x, batch_y = apachelogs.train.next_batch(batch_size)
 
         # perform the operations we defined earlier on batch
         loss_value, step_value = sess.run(
@@ -140,8 +141,8 @@ def train(train_op, total_loss, global_step, step):
             start_time = time.time()
             accuracy = sess.run(total_loss,
                                 feed_dict={
-                                    model.inputs[0]: mnist.test.images,
-                                    targets: mnist.test.labels})
+                                    model.inputs[0]: apachelogs.test.data,
+                                    targets: apachelogs.test.labels})
             print("Step: %d," % (step_value + 1),
                   " Iteration: %2d," % step,
                   " Cost: %.4f," % loss_value,
@@ -161,7 +162,7 @@ elif FLAGS.job_name == "worker":
         keras.backend.set_learning_phase(1)
         keras.backend.manual_variable_initialization(True)
         model = create_model()
-        targets = tf.placeholder(tf.float32, shape=[None, 10], name="y-input")
+        targets = tf.placeholder(tf.float32, shape=[None, 1], name="y-input")
         train_op, total_loss, predictions = create_optimizer(model, targets)
 
         global_step = tf.get_variable('global_step', [],
