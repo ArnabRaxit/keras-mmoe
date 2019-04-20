@@ -56,10 +56,13 @@ def load_data():
     print("Data loaded")
 
 # Create Keras model
-def create_model():
+def create_model(num_features):
     from keras.layers import Input, Dense
     from keras.models import Model
     from keras.models import Sequential
+    from mmoe import MMoE
+    from keras.initializers import VarianceScaling
+
     # Set up the input layer
     input_layer = Input(shape=(num_features,))
 
@@ -95,7 +98,7 @@ def create_model():
 # Create the optimizer
 # We cannot use model.compile and model.fit
 def create_optimizer(model, targets):
-	from keras.optimizers import Adam
+    from keras.optimizers import Adam
     predictions = model.output
     loss = tf.reduce_mean(
         keras.losses.categorical_crossentropy(targets, predictions))
@@ -141,7 +144,7 @@ def train(train_op, total_loss, global_step, step):
             start_time = time.time()
             accuracy = sess.run(total_loss,
                                 feed_dict={
-                                    model.inputs[0]: apachelogs.test.data,
+                                    model.inputs[0]: apachelogs.test.images,
                                     targets: apachelogs.test.labels})
             print("Step: %d," % (step_value + 1),
                   " Iteration: %2d," % step,
@@ -161,7 +164,7 @@ elif FLAGS.job_name == "worker":
             cluster=cluster)):
         keras.backend.set_learning_phase(1)
         keras.backend.manual_variable_initialization(True)
-        model = create_model()
+        model = create_model(apachelogs.test.images.shape[1])
         targets = tf.placeholder(tf.float32, shape=[None, 1], name="y-input")
         train_op, total_loss, predictions = create_optimizer(model, targets)
 

@@ -34,6 +34,7 @@ from tensorflow.python.framework import random_seed
 from tensorflow.python.platform import gfile
 from tensorflow.python.util.deprecation import deprecated
 
+import pandas as pd
 import numpy as np
 from datetime import datetime
 import re
@@ -99,8 +100,8 @@ class DataSet(object):
                reshape=True,
                seed=None):
     
-    assert images.shape[0] == labels.shape[0], (
-        'images.shape: %s labels.shape: %s' % (images.shape, labels.shape))
+    assert images.shape[0] == len(labels[0]), (
+        'images.shape: %s labels.shape: %s' % (images.shape[0], len(labels[0])))
     self._num_examples = images.shape[0]
 
     self._images = images
@@ -164,20 +165,18 @@ class DataSet(object):
 
 @deprecated(None, 'Please use alternatives such as official/mnist/dataset.py'
             ' from tensorflow/models.')
-def read_data_sets(train_dir,
-                   fake_data=False,
+def read_data_sets(fake_data=False,
                    one_hot=False,
                    dtype=dtypes.float32,
                    reshape=True,
                    validation_size=5000,
-                   seed=None,
-                   source_url=DEFAULT_SOURCE_URL):
+                   seed=None):
   
   train_data, train_labels, validation_data, validation_labels, test_data, test_labels = data_preparation_moe()
 
-  train = DataSet(train_data, train_labels, **options)
-  validation = DataSet(validation_data, validation_labels, **options)
-  test = DataSet(test_data, test_labels, **options)
+  train = DataSet(train_data, train_labels)
+  validation = DataSet(validation_data, validation_labels)
+  test = DataSet(test_data, test_labels)
 
   return base.Datasets(train=train, validation=validation, test=test)
 
