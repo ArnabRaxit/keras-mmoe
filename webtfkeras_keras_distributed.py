@@ -70,25 +70,25 @@ def create_model(num_features):
     mmoe_layers = MMoE(
         units=16,
         num_experts=8,
-        num_tasks=2
+        num_tasks=1
     )(input_layer)
 
     output_layers = []
 
-    output_info = ['y0', 'y1']
+    output_info = ['y0']
 
     # Build tower layer from MMoE layer
-    for index, task_layer in enumerate(mmoe_layers):
-        tower_layer = Dense(
-            units=8,
-            activation='relu',
-            kernel_initializer=VarianceScaling())(task_layer)
-        output_layer = Dense(
-            units=1,
-            name=output_info[index],
-            activation='linear',
-            kernel_initializer=VarianceScaling())(tower_layer)
-        output_layers.append(output_layer)
+    
+    tower_layer = Dense(
+        units=8,
+        activation='relu',
+        kernel_initializer=VarianceScaling())(mmoe_layers)
+    output_layer = Dense(
+        units=1,
+        name=output_info[0],
+        activation='linear',
+        kernel_initializer=VarianceScaling())(tower_layer)
+    output_layers.append(output_layer)
 
     # Compile model
     model = Model(inputs=[input_layer], outputs=output_layers)
@@ -108,7 +108,7 @@ def create_optimizer(model, targets):
     for regularizer_loss in model.losses:
         tf.assign_add(total_loss, regularizer_loss)
 
-    learning_rates = [1e-4, 1e-3, 1e-2]
+    learning_rates = [1e-4]
     optimizer = Adam(lr=learning_rates[0])
 
     # Barrier to compute gradients after updating moving avg of batch norm

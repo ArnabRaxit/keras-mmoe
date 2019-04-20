@@ -73,7 +73,6 @@ def data_preparation():
 def reshape(a):
     aa = []
     aa.append(a)
-    aa.append(a)
     return aa        
 
 def data_preparation_moe():
@@ -102,32 +101,36 @@ def main1():
     mmoe_layers = MMoE(
         units=16,
         num_experts=8,
-        num_tasks=2
+        num_tasks=1
     )(input_layer)
 
     output_layers = []
 
-    output_info = ['y0', 'y1']
+    output_info = ['y0']
 
+    print("mmoe_layers type is={}".format(type(mmoe_layers)))
+#     for index, task_layer in enumerate(mmoe_layers):
+#         print("index is ={}".format(index))
+#         print("task_layer is ={}".format(type(task_layer)))
     # Build tower layer from MMoE layer
-    for index, task_layer in enumerate(mmoe_layers):
-        tower_layer = Dense(
+    #for index, task_layer in enumerate(mmoe_layers):
+    tower_layer = Dense(
             units=8,
             activation='relu',
-            kernel_initializer=VarianceScaling())(task_layer)
-        output_layer = Dense(
+            kernel_initializer=VarianceScaling())(mmoe_layers)
+    output_layer = Dense(
             units=1,
-            name=output_info[index],
+            name=output_info[0],
             activation='linear',
             kernel_initializer=VarianceScaling())(tower_layer)
-        output_layers.append(output_layer)
+    output_layers.append(output_layer)
 
     # Compile model
     model = Model(inputs=[input_layer], outputs=output_layers)
-    learning_rates = [1e-4, 1e-3, 1e-2]
+    learning_rates = [1e-4]
     adam_optimizer = Adam(lr=learning_rates[0])
     model.compile(
-        loss={'y0': 'mean_squared_error', 'y1': 'mean_squared_error'},
+        loss={'y0': 'mean_squared_error'},
         optimizer=adam_optimizer,
         metrics=[metrics.mae]
     )
@@ -150,7 +153,7 @@ def main():
     train_data, train_label, validation_data, validation_label, test_data, test_label = data_preparation()
     num_features = train_data.shape[1]
 
-    print('Training data shape = {}'.format(train_data.shape))
+    print('Training222 data shape = {}'.format(train_data.shape))
     print('Validation data shape = {}'.format(validation_data.shape))
     print('Test data shape = {}'.format(test_data.shape))
 
