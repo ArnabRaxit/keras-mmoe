@@ -132,35 +132,35 @@ class DataSet(object):
     if self._epochs_completed == 0 and start == 0 and shuffle:
       perm0 = numpy.arange(self._num_examples)
       numpy.random.shuffle(perm0)
-      self._images = self.images[perm0]
-      self._labels = self.labels[perm0]
+      self._images = self.images.iloc[perm0]
+      self._labels = perm0
     # Go to the next epoch
     if start + batch_size > self._num_examples:
       # Finished epoch
       self._epochs_completed += 1
       # Get the rest examples in this epoch
       rest_num_examples = self._num_examples - start
-      images_rest_part = self._images[start:self._num_examples]
-      labels_rest_part = self._labels[start:self._num_examples]
+      images_rest_part = self._images.iloc[start:self._num_examples]
+      labels_rest_part = np.arange(start,self._num_examples)
       # Shuffle the data
       if shuffle:
         perm = numpy.arange(self._num_examples)
         numpy.random.shuffle(perm)
-        self._images = self.images[perm]
-        self._labels = self.labels[perm]
+        self._images = self.images.iloc[perm]
+        self._labels = perm
       # Start next epoch
       start = 0
       self._index_in_epoch = batch_size - rest_num_examples
       end = self._index_in_epoch
-      images_new_part = self._images[start:end]
-      labels_new_part = self._labels[start:end]
+      images_new_part = self._images.iloc[start:end]
+      labels_new_part = np.arange(start,end)
       return numpy.concatenate(
           (images_rest_part, images_new_part), axis=0), numpy.concatenate(
               (labels_rest_part, labels_new_part), axis=0)
     else:
       self._index_in_epoch += batch_size
       end = self._index_in_epoch
-      return self._images[start:end], self._labels[start:end]
+      return self._images.iloc[start:end], np.arange(start,end)
 
 
 @deprecated(None, 'Please use alternatives such as official/mnist/dataset.py'

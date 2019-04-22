@@ -98,10 +98,9 @@ def create_model(num_features):
 # Create the optimizer
 # We cannot use model.compile and model.fit
 def create_optimizer(model, targets):
-    from keras.optimizers import Adam
     predictions = model.output
     loss = tf.reduce_mean(
-        keras.losses.categorical_crossentropy(targets, predictions))
+        keras.losses.mean_squared_error(targets, predictions))
 
     # Only if you have regularizers, not in this example
     total_loss = loss * 1.0  # Copy
@@ -109,8 +108,10 @@ def create_optimizer(model, targets):
         tf.assign_add(total_loss, regularizer_loss)
 
     learning_rates = [1e-4]
-    optimizer = Adam(lr=learning_rates[0])
-
+    optimizer=tf.train.AdamOptimizer(learning_rate=learning_rates[0])
+    #optimizer = tf.keras.optimizers.Adam(lr=learning_rates[0])
+    #optimizer = tf.keras.optimizers.get(optimizer)
+    print("optimizer type is : {}".format(optimizer))
     # Barrier to compute gradients after updating moving avg of batch norm
     with tf.control_dependencies(model.updates):
         barrier = tf.no_op(name="update_barrier")
@@ -120,7 +121,7 @@ def create_optimizer(model, targets):
             total_loss,
             model.trainable_weights)
         grad_updates = optimizer.apply_gradients(grads)
-
+    print("type of grad_updates ={}".format(type(grad_updates)))
     with tf.control_dependencies([grad_updates]):
         train_op = tf.identity(total_loss, name="train")
 
