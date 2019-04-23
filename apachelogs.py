@@ -56,7 +56,7 @@ def apache_log_reader(logfile,regex,ts_format):
             labels.append(i)
             #labels[1].append(i)
             i = i+1
-    return data,labels
+    return data,numpy.asarray(labels).reshape(i,1)
 
 def data_preparation():
     #train_data,train_label = apache_log_reader("./sdsc-http.txt",r'[SMTWF][a-z]{2} [JFMASOND][a-z]{2} \d{2} \d{2}:\d{2}:\d{2} \d{4}',"%a %b %d %H:%M:%S %Y")
@@ -71,14 +71,13 @@ def data_preparation():
 def reshape(a):
     aa = []
     aa.append(a)
-    aa.append(a)
     return aa        
 
 def data_preparation_moe():
     train_data, train_l, validation_data, validation_l, test_data, test_l = data_preparation()
 
     
-    return train_data, reshape(train_l), validation_data, reshape(validation_l), test_data, reshape(test_l)
+    return train_data, train_l, validation_data, validation_l, test_data, test_l
 
 
 class DataSet(object):
@@ -100,8 +99,8 @@ class DataSet(object):
                reshape=True,
                seed=None):
     
-    assert images.shape[0] == len(labels[0]), (
-        'images.shape: %s labels.shape: %s' % (images.shape[0], len(labels[0])))
+#    assert images.shape[0] == labels.shape[0] (
+#        'images.shape: %s labels.shape: %s' % (images.shape[0], labels.shape[0]))
     self._num_examples = images.shape[0]
 
     self._images = images
@@ -156,11 +155,11 @@ class DataSet(object):
       labels_new_part = np.arange(start,end)
       return numpy.concatenate(
           (images_rest_part, images_new_part), axis=0), numpy.concatenate(
-              (labels_rest_part, labels_new_part), axis=0)
+              (labels_rest_part, labels_new_part), axis=0).reshape(batch_size,1)
     else:
       self._index_in_epoch += batch_size
       end = self._index_in_epoch
-      return self._images.iloc[start:end], np.arange(start,end)
+      return self._images.iloc[start:end], np.arange(start,end).reshape(batch_size,1)
 
 
 @deprecated(None, 'Please use alternatives such as official/mnist/dataset.py'
