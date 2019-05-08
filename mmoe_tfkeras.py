@@ -111,7 +111,7 @@ class MMoE(Layer):
                             or list/tuple of Keras tensors to reference
                             for weight shape computations
         """
-        print("input_shape={}".format(input_shape))
+        print("in mmoe_tfkeras  input_shape={}".format(input_shape))
         #assert input_shape is not None and len(input_shape) >= 2
 
         input_dimension = input_shape[-1]
@@ -120,7 +120,8 @@ class MMoE(Layer):
         # Initialize expert weights (number of input features * number of units per expert * number of experts)
         self.expert_kernels = self.add_weight(
             name='expert_kernel',
-            shape=tensorflow.TensorShape((input_dimension, self.units, self.num_experts)).as_list(),
+            #shape=tensorflow.TensorShape((input_dimension, self.units, self.num_experts)).as_list(),
+            shape=(input_dimension, self.units, self.num_experts),
             initializer=self.expert_kernel_initializer,
             regularizer=self.expert_kernel_regularizer,
             constraint=self.expert_kernel_constraint,
@@ -130,7 +131,8 @@ class MMoE(Layer):
         if self.use_expert_bias:
             self.expert_bias = self.add_weight(
                 name='expert_bias',
-                shape=tensorflow.TensorShape((self.units, self.num_experts)).as_list(),
+                #shape=tensorflow.TensorShape((self.units, self.num_experts)).as_list(),
+                shape=(self.units, self.num_experts),
                 initializer=self.expert_bias_initializer,
                 regularizer=self.expert_bias_regularizer,
                 constraint=self.expert_bias_constraint
@@ -139,7 +141,8 @@ class MMoE(Layer):
         # Initialize gate weights (number of input features * number of experts * number of tasks)
         self.gate_kernels = [self.add_weight(
             name='gate_kernel_task_{}'.format(i),
-            shape=tensorflow.TensorShape((input_dimension, self.num_experts)).as_list(),
+            #shape=tensorflow.TensorShape((input_dimension, self.num_experts)).as_list(),
+            shape=(input_dimension, self.num_experts),
             initializer=self.gate_kernel_initializer,
             regularizer=self.gate_kernel_regularizer,
             constraint=self.gate_kernel_constraint
@@ -149,7 +152,8 @@ class MMoE(Layer):
         if self.use_gate_bias:
             self.gate_bias = [self.add_weight(
                 name='gate_bias_task_{}'.format(i),
-                shape=tensorflow.TensorShape((self.num_experts,)).as_list(),
+                #shape=tensorflow.TensorShape((self.num_experts,)).as_list(),
+                shape=(self.num_experts,),
                 initializer=self.gate_bias_initializer,
                 regularizer=self.gate_bias_regularizer,
                 constraint=self.gate_bias_constraint
@@ -194,7 +198,7 @@ class MMoE(Layer):
             weighted_expert_output = expert_outputs * K.repeat_elements(expanded_gate_output, self.units, axis=1)
             final_outputs.append(K.sum(weighted_expert_output, axis=2))
 
-        return final_outputs
+        return final_outputs[0]
 
     def compute_output_shape(self, input_shape):
         """

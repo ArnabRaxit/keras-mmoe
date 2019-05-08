@@ -22,7 +22,6 @@ from tensorflow.keras.layers import BatchNormalization,Dense, Activation
 
 from mmoe_tfkeras import MMoE
 
-import kerasplt as kp
 
 SEED = 1
 
@@ -33,9 +32,9 @@ np.random.seed(SEED)
 random.seed(SEED)
 
 # Fix TensorFlow graph-level seed for reproducibility
-tf.set_random_seed(SEED)
-tf_session = tf.Session(graph=tf.get_default_graph())
-K.set_session(tf_session)
+#tf.set_random_seed(SEED)
+#tf_session = tf.Session(graph=tf.get_default_graph())
+#K.set_session(tf_session)
 
 import numpy as np
 from datetime import datetime
@@ -54,8 +53,8 @@ def apache_log_reader(logfile,regex,ts_format):
             ts = re.findall(myregex,log)[0]
             dt = datetime.strptime(ts,ts_format)
             #data.append([float(dt.timestamp())])
-            data.append([float(dt.timestamp())])
-            labels.append([i])
+            data.append((float(dt.timestamp()),))
+            labels.append(i)
             #labels[1].append(i)
             i = i+1
     return data,labels
@@ -70,11 +69,6 @@ def data_preparation():
     test_data, test_label = train_data,train_label
     
     return train_data, train_label, validation_data, validation_label, test_data, test_label
-def reshape(a):
-    aa = []
-    aa.append(a)
-    aa.append(a)
-    return aa        
 
 def data_preparation_moe():
     train_data, train_l, validation_data, validation_l, test_data, test_l = data_preparation()
@@ -137,10 +131,13 @@ def main1():
     # Print out model architecture summary
     model.summary()
 
-    
+    # set up config following tutorial: https://www.tensorflow.org/alpha/tutorials/distribute/multi_worker
+    strategy = tf.distribute.experimental.MultiWorkerMirroredStrategy()
+    config = tf.estimator.RunConfig(train_distribute=strategy)
+    #config = None
     # Create an Estimator from the compiled Keras model. Note the initial model
     # state of the keras model is preserved in the created Estimator.
-    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,model_dir='/tmp/webtfkerasToEstimator')
+    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,config=config,model_dir='/tmp/webtfkerasToEstimator')
     
     # Treat the derived Estimator as you would with any other Estimator.
     # First, recover the input name(s) of Keras model, so we can use them as the
@@ -150,7 +147,7 @@ def main1():
     # Once we have the input name(s), we can create the input function, for example,
     # for input(s) in the format of numpy ndarray:
 
-    def train_input_fn():
+    def train_input_fn(input_context=None):
         training_dataset = (
         tf.data.Dataset.from_tensor_slices(
             (
@@ -161,6 +158,8 @@ def main1():
         )
         training_dataset = training_dataset.batch(50000)
         #training_dataset = training_dataset.repeat(100)
+        if input_context:
+            training_dataset = training_dataset.shard(input_context.num_input_pipelines,input_context.input_pipeline_id)
         return training_dataset
 
     # To train, we call Estimator's train function:
@@ -168,14 +167,7 @@ def main1():
     eval_spec = tf.estimator.EvalSpec(input_fn=train_input_fn)
     tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
     
-    
-    # Train the model
-#     model.fit(
-#         x=train_data,
-#         y=train_label,
-#         validation_data=(validation_data, validation_label),
-#         epochs=24
-#     )
+
 
     predictions = estimator.predict(input_fn=train_input_fn)
     return predictions
