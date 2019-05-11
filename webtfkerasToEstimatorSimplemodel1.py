@@ -78,6 +78,7 @@ def data_preparation_moe():
     return train_data, train_l, validation_data, validation_l, test_data, test_l
 
 def main1():
+
     # Load the data
     train_data, train_label, validation_data, validation_label, test_data, test_label = data_preparation_moe()
     num_features = train_data.shape[1]
@@ -90,41 +91,14 @@ def main1():
     
     
     
-    # Set up the input layer
-    input_layer = Input(shape=(num_features,))
-
-    # Set up MMoE layer
-    mmoe_layers = MMoE(
-        units=16,
-        num_experts=8,
-        num_tasks=1,
-        name='mmoe_layers'
-    )(input_layer)
-
-    output_layers = []
-
-    output_info = ['y0']
-
-    # Build tower layer from MMoE layer
-    #for index, task_layer in enumerate(mmoe_layers):
-    tower_layer = Dense(
-        units=8,
-        activation='relu',
-        name='tower_layer',
-        kernel_initializer=VarianceScaling())(mmoe_layers)
-    output_layer = Dense(
-        units=1,
-        name=output_info[0],
-        activation='linear',
-        kernel_initializer=VarianceScaling())(tower_layer) 
-    output_layers.append(output_layer)
-
-    # Compile model
-    model = Model(inputs=[input_layer], outputs=output_layers)
+    model = tf.keras.Sequential([
+          tf.keras.layers.Dense(16,input_shape=(1,)),
+          tf.keras.layers.Dense(1)
+      ])
     learning_rates = [1e-2]
     adam_optimizer = Adam(lr=learning_rates[0])
     model.compile(
-        loss={'y0': 'mean_squared_error'},
+        loss={'dense_1': 'mean_squared_error'},
         optimizer=adam_optimizer,
         metrics=[metrics.mae]
     )
@@ -137,7 +111,7 @@ def main1():
     config = tf.estimator.RunConfig(train_distribute=strategy)
     # Create an Estimator from the compiled Keras model. Note the initial model
     # state of the keras model is preserved in the created Estimator.
-    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,config=config,model_dir='/tmp/webtfkerasToEstimator')
+    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,config=config,model_dir='/tmp/multiworker/')
     
     # Treat the derived Estimator as you would with any other Estimator.
     # First, recover the input name(s) of Keras model, so we can use them as the
@@ -156,7 +130,7 @@ def main1():
             )
         )
         )
-        training_dataset = training_dataset.batch(50000)
+        training_dataset = training_dataset.batch(2000)
         #training_dataset = training_dataset.repeat(100)
         return training_dataset
 

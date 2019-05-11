@@ -194,7 +194,7 @@ class MMoE(Layer):
             weighted_expert_output = expert_outputs * K.repeat_elements(expanded_gate_output, self.units, axis=1)
             final_outputs.append(K.sum(weighted_expert_output, axis=2))
 
-        return final_outputs
+        return final_outputs[0]
 
     def compute_output_shape(self, input_shape):
         """
