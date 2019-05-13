@@ -55,9 +55,9 @@ def apache_log_reader(logfile,regex,ts_format):
             i = i+1
     return data,labels
 
-def data_preparation():
+def data_preparation(input_data_file):
     #train_data,train_label = apache_log_reader("../sdsc-http.txt",r'[SMTWF][a-z]{2} [JFMASOND][a-z]{2} \d{2} \d{2}:\d{2}:\d{2} \d{4}',"%a %b %d %H:%M:%S %Y")
-    train_data,train_label = apache_log_reader("../usask_access_log_50k",r'\d{2}/.../\d{4}\:\d{2}\:\d{2}\:\d{2}',"%d/%b/%Y:%H:%M:%S")
+    train_data,train_label = apache_log_reader(input_data_file,r'\d{2}/.../\d{4}\:\d{2}\:\d{2}\:\d{2}',"%d/%b/%Y:%H:%M:%S")
     train_data=train_data-np.amin(train_data)
     cols = ['input_1']
     train_data = pd.DataFrame.from_records(train_data, columns=cols)
@@ -71,16 +71,16 @@ def reshape(a):
     aa.append(a)
     return aa        
 
-def data_preparation_moe():
-    train_data, train_l, validation_data, validation_l, test_data, test_l = data_preparation()
+def data_preparation_moe(input_data_file):
+    train_data, train_l, validation_data, validation_l, test_data, test_l = data_preparation(input_data_file)
 
     
     return train_data, train_l, validation_data, validation_l, test_data, test_l
 
-def main1():
+def main1(input_data_file="../usask_access_log_50k"):
 
     # Load the data
-    train_data, train_label, validation_data, validation_label, test_data, test_label = data_preparation_moe()
+    train_data, train_label, validation_data, validation_label, test_data, test_label = data_preparation_moe(input_data_file)
     num_features = train_data.shape[1]
 
     print('Training data shape = {}'.format(train_data.shape))
