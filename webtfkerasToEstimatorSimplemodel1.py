@@ -131,9 +131,9 @@ def main1(input_data_file="../usask_access_log_50k"):
             )
         )
         )
-        if os.environ['TF_CONFIG'] not None:
+        if "TF_CONFIG" in os.environ:
             print("sharding ....")
-            training_dataset = training_dataset.shard(os.environ['NUM_WORKERS'],os.environ['WORKER_NUM'])
+            training_dataset = training_dataset.shard(int(os.environ['NUM_WORKERS']),int(os.environ['WORKER_NUM']))
         training_dataset = training_dataset.batch(2000)
         #training_dataset = training_dataset.repeat(100)
         return training_dataset
