@@ -122,6 +122,7 @@ def main1(input_data_file="../usask_access_log_50k"):
     # for input(s) in the format of numpy ndarray:
 
     def train_input_fn():
+        import os
         training_dataset = (
         tf.data.Dataset.from_tensor_slices(
             (
@@ -130,6 +131,9 @@ def main1(input_data_file="../usask_access_log_50k"):
             )
         )
         )
+        if os.environ['TF_CONFIG'] not None:
+            print("sharding ....")
+            training_dataset = training_dataset.shard(os.environ['NUM_WORKERS'],os.environ['WORKER_NUM'])
         training_dataset = training_dataset.batch(2000)
         #training_dataset = training_dataset.repeat(100)
         return training_dataset
