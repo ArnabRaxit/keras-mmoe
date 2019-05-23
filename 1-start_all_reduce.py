@@ -26,4 +26,4 @@ os.environ['TF_CONFIG'] = json.dumps({
 #kmte.main("/tmp/kmtechkpt")
 
 import  webtfkerasToEstimatorSimplemodel1 as  kmte
-kmte.main1(model_dir='~/model_dir')
+kmte.main1(model_dir='/home/cloud_user/model_dir')
