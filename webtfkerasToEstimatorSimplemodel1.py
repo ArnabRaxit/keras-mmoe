@@ -77,7 +77,7 @@ def data_preparation_moe(input_data_file):
     
     return train_data, train_l, validation_data, validation_l, test_data, test_l
 
-def main1(input_data_file="../usask_access_log_50k"):
+def main1(input_data_file="../usask_access_log_50k", model_dir='/tmp/multiworker'):
 
     # Load the data
     train_data, train_label, validation_data, validation_label, test_data, test_label = data_preparation_moe(input_data_file)
@@ -111,7 +111,7 @@ def main1(input_data_file="../usask_access_log_50k"):
     config = tf.estimator.RunConfig(train_distribute=strategy)
     # Create an Estimator from the compiled Keras model. Note the initial model
     # state of the keras model is preserved in the created Estimator.
-    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,config=config,model_dir='/tmp/multiworker/')
+    estimator = tf.keras.estimator.model_to_estimator(keras_model=model,config=config,model_dir=model_dir)
     
     # Treat the derived Estimator as you would with any other Estimator.
     # First, recover the input name(s) of Keras model, so we can use them as the
